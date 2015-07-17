@@ -8,6 +8,67 @@ extern "C" {
     #include "gpio.h"
 }
 
+/* Display methods */
+
+/*
+ * CONSTRUCTOR
+ *      Dynamically allocates matrix
+ */
+
+Display::Display(int h, int w) {
+    height = h;
+    width = w;
+
+    // Map the GPIO hardware address to virtual memory
+    GPIO_address = GPIOSetup();
+
+    matrix = new int*[height];
+
+
+    for (int i = 0; i < height; i++) {
+        matrix[i] = new int[width];
+    }
+}
+
+/*
+ * DESTRUCTOR
+ *      Dynamically deallocates matrix
+ */
+Display::~Display() {
+
+    for (int i = 0; i < height; i++) {
+        delete matrix[i];
+    }
+
+    delete matrix;
+}
+
+/* Getters */
+
+int Display::getHeight() {
+    return height;
+}
+
+int Display::getWidth() {
+    return width;
+}
+
+int Display::getValue(int row, int col) {
+    return matrix[row][col];
+}
+
+volatile uint32_t *Display::getGPIO() {
+    return GPIO_address;
+}
+
+/* Setters */
+
+void Display::setValue(int row, int col, int val) {
+    matrix[row][col] = val;    
+}
+
+/* End Display methods */
+
 /* FUNCTION NAMES:
  *      writecolor{Top/Bot}
  *
@@ -36,6 +97,7 @@ void writeColorBot(volatile uint32_t *GPIO_address, int color) {
     setBit(GPIO_address, BLUE2, (color & 0x0000FF)? 1: 0);
 }
 
+
 /*
  * FUNCTION NAME:
  *      loop(struct display *)
@@ -47,15 +109,14 @@ void writeColorBot(volatile uint32_t *GPIO_address, int color) {
  *      the main display loop for the LED Display.
  *
  */
-int loop(struct display *disp) {
+int loop(Display *disp) {
     
-    // Map the GPIO hardware address to virtual memory
-    volatile uint32_t* GPIO_address = GPIOSetup();
-
-    // Ensure the memory map succeeded
-    if (GPIO_address == NULL) {
-        return -1;
-    }
+    // Get pertinent information 
+    disp->mutex_lock.lock();
+    int halfheight = (disp->getHeight())/2;
+    int width = disp->getWidth();
+    volatile uint32_t *GPIO_address = disp->getGPIO();
+    disp->mutex_lock.unlock();
 
     struct timespec sleepVal = {0};
     sleepVal.tv_nsec = SLEEPTIME;
@@ -75,11 +136,6 @@ int loop(struct display *disp) {
     setMode(GPIO_address, LATCH, OUT);
     setMode(GPIO_address, CLOCK, OUT);
 
-    // Get the half-height: the distance between simultaneously updating pixels
-    disp->mutex_lock.lock();
-    int halfheight = (disp->height)/2;
-    int width = disp->width;
-    disp->mutex_lock.unlock();
 
 
     // Loop infinitely
@@ -97,8 +153,9 @@ int loop(struct display *disp) {
                 disp->mutex_lock.lock();
                 
                 // Write out the board
-                writeColorTop(GPIO_address, disp->matrix[row][col]);
-                writeColorBot(GPIO_address, disp->matrix[row + halfheight][col]);
+                writeColorTop(GPIO_address, disp->getValue(row, col));
+                writeColorBot(GPIO_address, disp->getValue(row + halfheight,
+                                                           col));
                
 
                 // Free the display

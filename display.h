@@ -6,20 +6,33 @@
 
 /* Defines */
 
-#define SLEEPTIME 1000
+#define SLEEPTIME 100
 
-/* Structs */
+/* Class */
 
 // model of the display to be shown
-struct display {
-    int **matrix;
-    int width, height;
-    std::mutex mutex_lock;
+class Display {
+    private: 
+        int **matrix;
+        int width, height;
+        volatile uint32_t *GPIO_address;    
+    public:
+        std::mutex mutex_lock;
+
+        Display(int, int);
+        ~Display();
+
+        int getHeight();
+        int getWidth();
+        int getValue(int, int);
+        volatile uint32_t *getGPIO();
+
+        void setValue(int, int, int);
 };
 
 /* Prototypes */
 
 // Main display loop
-int loop(struct display*);
+int loop(Display*);
 
 #endif
