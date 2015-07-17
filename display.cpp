@@ -79,14 +79,6 @@ int loop(struct display *disp) {
     disp->mutex_lock.lock();
     int halfheight = (disp->height)/2;
     int width = disp->width;
-    std::cerr << width << "\n";
-    for (int i=0; i < width; i++) {
-        for (int j=0; j < width; j++) {
-            std::cerr << disp->matrix[i][j] << " ";
-        }
-        std::cerr << std::endl;
-    }
-    
     disp->mutex_lock.unlock();
 
 
