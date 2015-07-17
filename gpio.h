@@ -1,5 +1,5 @@
-#ifndef GPIO_SETUP
-#define GPIO_SETUP
+#ifndef GPIO_H
+#define GPIO_H
 
 /* Defines */
 

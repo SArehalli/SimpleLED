@@ -1,9 +1,10 @@
 #include <cstdlib>
 #include <stdint.h>
-#include <ctime>
-#include "display.h"
+#include <time.h>
 #include <iostream>
 #include <thread>
+#include "display.h"
+#include "errors.h"
 
 extern "C" {
     #include "gpio.h"
@@ -24,6 +25,7 @@ Display::Display(int h, int w) {
     // Map the GPIO hardware address to virtual memory
     GPIO_address = GPIOSetup();
 
+    viewLoop = std::thread(loop, this);
     
     // Make the matrix
     matrix = new int*[height];
@@ -45,6 +47,9 @@ Display::~Display() {
     }
     
     delete matrix;
+
+    // let the loop die;
+    this->stop();
 }
 
 /* Getters */
@@ -76,10 +81,70 @@ void Display::setValue(int row, int col, int val) {
 }
 
 void Display::stop() {
+    // Clear Screen
+    this->drawSquare(0,0,32,32,0);
+
+    // Stop the loop
     state = 0;
+
+    // ensure that the loop is finished 
+    viewLoop.join();
 }
 
+void Display::drawSquare(int x, int y, 
+                         int width, int height, int color) {
+   
+    // Bounds checking
+    if (x < 0 || y < 0 || width < 0 || height < 0 ||
+        (x + width > this->width) || 
+        (y + height > this->height)) {
+        std::cerr << ERR_BOUNDS;
+    }
+
+    if (color < 0 || color > 0xFFFFFF) {
+        std::cerr << ERR_COLOR;
+    }
+
+    // Get lock
+    this->mutex_lock.lock();
+    
+    // Draw a square
+    for (int i = y; i < y + height; i++) {
+        for (int j = x; j < x + width; j++) {
+            this->setValue(i, j, color);
+        }
+    }
+
+    // Free Lock
+    this->mutex_lock.unlock();
+}
+
+
 /* End Display methods */
+
+/* FUNCTION NAME:
+ *      PWM
+ *
+ * PARAMETERS:
+ *      color - number from 0 - 255 designating color intensity
+ *
+ * DESCRIPTION:
+ *      Allow the rendering of more than 7 colors by flickering LEDs 
+ *      proportional to color intensity. E.g., Pulse Width Modulation
+ */
+int PWM(int color) {
+    // Get current time
+    clock_t cur_time;
+    cur_time = clock();
+
+    // return 1 with probability proportional to color/255
+    if ((cur_time % 255) < color) {
+        return 1;
+    }
+    else {
+        return 0;
+    }
+}
 
 /* FUNCTION NAMES:
  *      writecolor{Top/Bot}
@@ -98,15 +163,15 @@ void Display::stop() {
  */
 
 void writeColorTop(volatile uint32_t *GPIO_address, int color) {
-    setBit(GPIO_address, RED1, (color & 0xFF0000)? 1: 0);
-    setBit(GPIO_address, GREEN1, (color & 0x00FF00)? 1: 0);
-    setBit(GPIO_address, BLUE1, (color & 0x0000FF)? 1: 0);
+    setBit(GPIO_address, RED1, PWM((color & 0xFF0000)>>16));
+    setBit(GPIO_address, GREEN1, PWM((color & 0x00FF00)>>8));
+    setBit(GPIO_address, BLUE1, PWM((color & 0x0000FF)));
 }
 
 void writeColorBot(volatile uint32_t *GPIO_address, int color) {
-    setBit(GPIO_address, RED2, (color & 0xFF0000)? 1: 0);
-    setBit(GPIO_address, GREEN2, (color & 0x00FF00)? 1: 0);
-    setBit(GPIO_address, BLUE2, (color & 0x0000FF)? 1: 0);
+    setBit(GPIO_address, RED2, PWM((color & 0xFF0000)>>16));
+    setBit(GPIO_address, GREEN2, PWM((color & 0x00FF00)>>8));
+    setBit(GPIO_address, BLUE2, PWM((color & 0x0000FF)));
 }
 
 
@@ -148,12 +213,9 @@ int loop(Display *disp) {
     setMode(GPIO_address, LATCH, OUT);
     setMode(GPIO_address, CLOCK, OUT);
 
-
-
     // Loop infinitely
     while(disp->isRunning()) {
         for (int row = 0; row < halfheight; row++) {
-            disp->mutex_lock.unlock();
             // Tell the board which rows to write to
             setBit(GPIO_address, OE, 1);
             setBit(GPIO_address, A_PIN, row & 1);
@@ -169,7 +231,6 @@ int loop(Display *disp) {
                 writeColorTop(GPIO_address, disp->getValue(row, col));
                 writeColorBot(GPIO_address, disp->getValue(row + halfheight,
                                                            col));
-               
 
                 // Free the display
                 disp->mutex_lock.unlock();
@@ -185,8 +246,8 @@ int loop(Display *disp) {
 
             // Pause momentarily
             nanosleep(&sleepVal, NULL);
-            disp->mutex_lock.lock();
          }
     }
     return 0;
 }
+

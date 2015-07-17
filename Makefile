@@ -1,3 +1,6 @@
+demo3: demo3.cpp draw.cpp display.cpp gpio.o
+	g++ -O2 -o demo3 demo3.cpp draw.cpp display.cpp gpio.o -std=gnu++0x -lpthread -g
+
 demo2: demo2.cpp draw.cpp display.cpp gpio.o
 	g++ -o demo2 demo2.cpp draw.cpp display.cpp gpio.o -std=gnu++0x -lpthread -g
 

@@ -18,6 +18,11 @@ def module_gen(name):
     display.add_method('setValue', None, [param('int', 'row'),
                                          param('int', 'col'),
                                          param('int', 'color')])
+    display.add_method('drawSquare', None, [param('int', 'x'),
+                                            param('int', 'y'),
+                                            param('int', 'width'),
+                                            param('int', 'height'),
+                                            param('int', 'color')])
     mod.add_function('loop', retval('int'), [param('Display *', 'disp', 
                                                   transfer_ownership=False)])
     mod.generate(name)

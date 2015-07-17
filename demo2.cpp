@@ -8,7 +8,7 @@ int main() {
     Display *disp = new Display(32, 32);
 
     struct timespec pauseTime = {0};
-    pauseTime.tv_sec = 10;
+    pauseTime.tv_nsec = 100000000;
 
     std::thread mainLoop(loop, disp);
 
@@ -18,6 +18,7 @@ int main() {
                        (((i+j)% 2 == 0)? 0x00FF00 : 0x000000)  + 
                        (((i+j)% 3 == 0)? 0x0000FF : 0x000000)  + 
                        (((i+j)% 5 == 0)? 0xFF0000 : 0x000000));
+            nanosleep(&pauseTime, NULL);
         }
     }
 

@@ -1,5 +1,5 @@
-#ifndef DiSPLAY_LOOP
-#define DiSPLAY_LOOP
+#ifndef DISPLAY_H
+#define DISPLAY_H
 
 #include <thread>
 #include <mutex>
@@ -17,6 +17,8 @@ class Display {
         int **matrix;
         int width, height;
         volatile uint32_t *GPIO_address;    
+        std::thread viewLoop;
+
     public:
         std::mutex mutex_lock;
 
@@ -30,6 +32,7 @@ class Display {
         volatile uint32_t *getGPIO();
 
         void setValue(int, int, int);
+        void drawSquare(int, int, int, int, int);
         void stop();
 };
 
@@ -37,5 +40,6 @@ class Display {
 
 // Main display loop
 int loop(Display*);
+int viewLoop(Display *disp);
 
 #endif
