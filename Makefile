@@ -11,4 +11,4 @@ gpio.o: gpio.c
 	gcc -c gpio.c
 
 clean:
-	rm -f *.o demo0 demo1
+	rm -f *.o demo?

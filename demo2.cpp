@@ -10,7 +10,7 @@ int main() {
     struct timespec pauseTime = {0};
     pauseTime.tv_sec = 10;
 
-    std::thread mainLoop = std::thread(loop, disp);
+    std::thread mainLoop(loop, disp);
 
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
@@ -23,7 +23,7 @@ int main() {
 
     nanosleep(&pauseTime, NULL);
     drawSquare(disp, 0, 0, 32, 32, 0);
-
+    disp->stop();
     mainLoop.join();
 }
 

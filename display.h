@@ -13,6 +13,7 @@
 // model of the display to be shown
 class Display {
     private: 
+        int state;
         int **matrix;
         int width, height;
         volatile uint32_t *GPIO_address;    
@@ -22,12 +23,14 @@ class Display {
         Display(int, int);
         ~Display();
 
+        int isRunning();
         int getHeight();
         int getWidth();
         int getValue(int, int);
         volatile uint32_t *getGPIO();
 
         void setValue(int, int, int);
+        void stop();
 };
 
 /* Prototypes */

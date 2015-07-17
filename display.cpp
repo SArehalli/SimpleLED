@@ -3,6 +3,7 @@
 #include <ctime>
 #include "display.h"
 #include <iostream>
+#include <thread>
 
 extern "C" {
     #include "gpio.h"
@@ -18,12 +19,14 @@ extern "C" {
 Display::Display(int h, int w) {
     height = h;
     width = w;
+    state = 1;
 
     // Map the GPIO hardware address to virtual memory
     GPIO_address = GPIOSetup();
 
+    
+    // Make the matrix
     matrix = new int*[height];
-
 
     for (int i = 0; i < height; i++) {
         matrix[i] = new int[width];
@@ -36,14 +39,19 @@ Display::Display(int h, int w) {
  */
 Display::~Display() {
 
+    // Delete the Matrix
     for (int i = 0; i < height; i++) {
         delete matrix[i];
     }
-
+    
     delete matrix;
 }
 
 /* Getters */
+
+int Display::isRunning() {
+    return state;
+}
 
 int Display::getHeight() {
     return height;
@@ -65,6 +73,10 @@ volatile uint32_t *Display::getGPIO() {
 
 void Display::setValue(int row, int col, int val) {
     matrix[row][col] = val;    
+}
+
+void Display::stop() {
+    state = 0;
 }
 
 /* End Display methods */
@@ -139,8 +151,9 @@ int loop(Display *disp) {
 
 
     // Loop infinitely
-    while(1) {
+    while(disp->isRunning()) {
         for (int row = 0; row < halfheight; row++) {
+            disp->mutex_lock.unlock();
             // Tell the board which rows to write to
             setBit(GPIO_address, OE, 1);
             setBit(GPIO_address, A_PIN, row & 1);
@@ -172,6 +185,8 @@ int loop(Display *disp) {
 
             // Pause momentarily
             nanosleep(&sleepVal, NULL);
+            disp->mutex_lock.lock();
          }
     }
+    return 0;
 }
