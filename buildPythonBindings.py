@@ -23,6 +23,12 @@ def module_gen(name):
                                             param('int', 'width'),
                                             param('int', 'height'),
                                             param('int', 'color')])
+    display.add_method('drawTriangle', None, [param('int', 'x'),
+                                              param('int', 'y'),
+                                              param('int', 'width'),
+                                              param('int', 'height'),
+                                              param('int', 'color')])
+    display.add_method('clear', None, [])
     mod.add_function('loop', retval('int'), [param('Display *', 'disp', 
                                                   transfer_ownership=False)])
     mod.generate(name)

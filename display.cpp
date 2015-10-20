@@ -33,6 +33,13 @@ Display::Display(int h, int w) {
     for (int i = 0; i < height; i++) {
         matrix[i] = new int[width];
     }
+
+    // Clear the board
+    for (int i = 0; i < height; i++) {
+        for (int j = 0; j < width; j++) {
+            matrix[i][j] = 0;
+        }
+    }
 }
 
 /*
@@ -119,6 +126,37 @@ void Display::drawSquare(int x, int y,
     this->mutex_lock.unlock();
 }
 
+void Display::drawTriangle(int x, int y, 
+                           int width, int height, int color) {
+   
+    // Bounds checking
+    if (x < 0 || y < 0 || width < 0 || height < 0 ||
+        (x + width > this->width) || 
+        (y + height > this->height)) {
+        std::cerr << ERR_BOUNDS;
+    }
+
+    if (color < 0 || color > 0xFFFFFF) {
+        std::cerr << ERR_COLOR;
+    }
+
+    // Get lock
+    this->mutex_lock.lock();
+    
+    // Draw a triangle
+    for (int i = y; i < y + height; i++) {
+        for (int j = x; j < x + width - i; j++) {
+            this->setValue(i, j, color);
+        }
+    }
+
+    // Free Lock
+    this->mutex_lock.unlock();
+}
+
+void Display::clear() {
+    drawSquare(0, 0, width, height, 0);
+}
 
 /* End Display methods */
 
@@ -133,12 +171,9 @@ void Display::drawSquare(int x, int y,
  *      proportional to color intensity. E.g., Pulse Width Modulation
  */
 int PWM(int color) {
-    // Get current time
-    clock_t cur_time;
-    cur_time = clock();
 
     // return 1 with probability proportional to color/255
-    if ((cur_time % 255) < color) {
+    if (color > 0) {
         return 1;
     }
     else {

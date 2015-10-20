@@ -7,7 +7,7 @@ for i in range(32):
 
 d.drawSquare(12,12,4,4,255)
 
-d.setValue(10,12,0xff00ff)
+d.setValue(10,12,0xaa00ff)
 a = raw_input()
 
 print "This"

@@ -31,8 +31,11 @@ class Display {
         int getValue(int, int);
         volatile uint32_t *getGPIO();
 
-        void setValue(int, int, int);
         void drawSquare(int, int, int, int, int);
+        void drawTriangle(int, int, int, int, int);
+        void clear();
+
+        void setValue(int, int, int);
         void stop();
 };
 
