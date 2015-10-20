@@ -18,7 +18,7 @@ def module_gen(name):
     display.add_method('setValue', None, [param('int', 'row'),
                                          param('int', 'col'),
                                          param('int', 'color')])
-    display.add_method('drawSquare', None, [param('int', 'x'),
+    display.add_method('drawRectangle', None, [param('int', 'x'),
                                             param('int', 'y'),
                                             param('int', 'width'),
                                             param('int', 'height'),

@@ -3,6 +3,7 @@
 #include <time.h>
 #include <iostream>
 #include <thread>
+#include <cmath>
 #include "display.h"
 #include "errors.h"
 
@@ -89,7 +90,7 @@ void Display::setValue(int row, int col, int val) {
 
 void Display::stop() {
     // Clear Screen
-    this->drawSquare(0,0,32,32,0);
+    this->drawRectangle(0,0,32,32,0);
 
     // Stop the loop
     state = 0;
@@ -98,8 +99,8 @@ void Display::stop() {
     viewLoop.join();
 }
 
-void Display::drawSquare(int x, int y, 
-                         int width, int height, int color) {
+void Display::drawRectangle(int x, int y, 
+                            int width, int height, int color) {
    
     // Bounds checking
     if (x < 0 || y < 0 || width < 0 || height < 0 ||
@@ -115,7 +116,7 @@ void Display::drawSquare(int x, int y,
     // Get lock
     this->mutex_lock.lock();
     
-    // Draw a square
+    // Draw a rectangle
     for (int i = y; i < y + height; i++) {
         for (int j = x; j < x + width; j++) {
             this->setValue(i, j, color);
@@ -130,7 +131,9 @@ void Display::drawTriangle(int x, int y,
                            int width, int height, int color) {
    
     // Bounds checking
-    if (x < 0 || y < 0 || width < 0 || height < 0 ||
+    if (x < 0 || y < 0 || 
+        (x + width < 0) || 
+        (x + height < 0) ||
         (x + width > this->width) || 
         (y + height > this->height)) {
         std::cerr << ERR_BOUNDS;
@@ -144,9 +147,33 @@ void Display::drawTriangle(int x, int y,
     this->mutex_lock.lock();
     
     // Draw a triangle
-    for (int i = y; i < y + height; i++) {
-        for (int j = x; j < x + width - i; j++) {
-            this->setValue(i, j, color);
+    if (height > 0) {
+        for (int i = y; i < y + height; i++) {
+            double step = ((double) width)/height;
+            if (width > 0) {
+                for (int j = x; j < x + width - std::round((i - y) * step); j++) {
+                    this->setValue(i, j, color);
+                }
+            }
+            else {
+                for (int j = x; j > x + width - std::round((i - y) * step); j--) {
+                    this->setValue(i, j, color);
+                }
+            }
+        }
+    } else {
+        for (int i = y; i > y + height; i--) {
+            double step = ((double) width)/height;
+            if (width > 0) {
+                for (int j = x; j < x + width - std::round((i - y) * step); j++) {
+                    this->setValue(i, j, color);
+                }
+            }
+            else {
+                for (int j = x; j > x + width - std::round((i - y) * step); j--) {
+                    this->setValue(i, j, color);
+                }
+            }
         }
     }
 
@@ -155,7 +182,7 @@ void Display::drawTriangle(int x, int y,
 }
 
 void Display::clear() {
-    drawSquare(0, 0, width, height, 0);
+    drawRectangle(0, 0, width, height, 0);
 }
 
 /* End Display methods */

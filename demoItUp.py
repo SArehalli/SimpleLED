@@ -29,9 +29,9 @@ def transform_to_levels(data, chunk, sampling_rate):
     matrix = np.reshape(fourier,(BOARD_SIZE, chunk/BOARD_SIZE))
     
     # Get the maxs, averages, and mins for the bins
-    levels_min = normalize(np.min(data,1))
-    levels_avg = normalize(np.average(data,1))
-    levels_max = normalize(np.max(data,1))
+    levels_min = normalize(np.min(matrix, 1))
+    levels_avg = normalize(np.average(matrix, 1))
+    levels_max = normalize(np.max(matrix, 1))
 
     # return those maxs, averages, and mins
     return levels_max, levels_avg, levels_min

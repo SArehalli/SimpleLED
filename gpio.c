@@ -23,15 +23,15 @@
  *      Maps the hardware addresses of the RPi's GPIO pins to virtual memory.
  *
  * RETURN VALUE:
- *      a volatile uint32_t pointer to the virtual memory address that was 
+ *      a volatile uint32_t pointer to the virtual memory address that was
  *      mapped to.
  *
  * ERROR CONDTIONS:
- *      If the memory could not be mapped for any reason (lack of priviledges, 
- *      lack of memory, etc.), NULL is returned. 
+ *      If the memory could not be mapped for any reason (lack of priviledges,
+ *      lack of memory, etc.), NULL is returned.
  *
  */
-volatile uint32_t* GPIOSetup() { 
+volatile uint32_t* GPIOSetup() {
 
     // Get a file descriptor for /dev/mem
     int mem_file;
@@ -53,7 +53,7 @@ volatile uint32_t* GPIOSetup() {
         fprintf(stderr,"%d" ,errno);
         return NULL;
     }
-    
+
     close(mem_file);
 }
 
@@ -78,7 +78,7 @@ volatile uint32_t* GPIOSetup() {
 void setBit(volatile uint32_t* GPIO_address, int pin, int bit) {
     // Address to write to
     volatile uint32_t* write_address = GPIO_address;
-    
+
     // If we set the bit
     if (bit > 0) {
         write_address += GPIO_SET/4; // Adjust for scaled pointer arithmetic
@@ -88,7 +88,7 @@ void setBit(volatile uint32_t* GPIO_address, int pin, int bit) {
     else {
         write_address += GPIO_CLR/4; // Adjust for scaled pointer arithmetic
     }
-    
+
     *write_address = 1 << pin;
 }
 
@@ -102,7 +102,7 @@ void setBit(volatile uint32_t* GPIO_address, int pin, int bit) {
  *      mode         - mode to set the pin to. See constants in gpio.h.
  *
  * DESCRIPTION:
- *      given a GPIO memory map, setMode will set the mode of 
+ *      given a GPIO memory map, setMode will set the mode of
  *      the GPIO pin given in pin to the mode given in mode.
  *
  * RETURN:
@@ -112,9 +112,9 @@ void setBit(volatile uint32_t* GPIO_address, int pin, int bit) {
 void setMode(volatile uint32_t* GPIO_address, int pin, int mode) {
     // Address to write to
     volatile uint32_t* write_address = GPIO_address;
-   
+
     // Get to the right write address
-    // 32 bits / 3 bits per pin = 10 pins per 4 byte address 
+    // 32 bits / 3 bits per pin = 10 pins per 4 byte address
     int num_pins_away = pin;
     while (num_pins_away > 9) {
         write_address++; // Scaled pointer arithmetic
@@ -124,5 +124,3 @@ void setMode(volatile uint32_t* GPIO_address, int pin, int mode) {
     *write_address |= mode << (num_pins_away * 3);
 
 }
-
-
