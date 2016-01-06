@@ -77,9 +77,9 @@ while(data != ''):
 
     # Redraw the board
     for i in range(BOARD_SIZE):
-        d.drawSquare(i, 0, 1, levels_max[31-i], 0xff0000)
-        d.drawSquare(i, 0, 1, levels_avg[31-i], 0xff00ff)
-        d.drawSquare(i, 0, 1, levels_min[31-i], 0x0000ff)
+        d.drawRectangle(i, 0, 1, levels_max[31-i], 0xff0000)
+        d.drawRectangle(i, 0, 1, levels_avg[31-i], 0xff00ff)
+        d.drawRectangle(i, 0, 1, levels_min[31-i], 0x0000ff)
     
     # Read more data
     data = sound.readframes(chunk_size)
